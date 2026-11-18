@@ -299,6 +299,119 @@ export class FakeNotifier {
     }
 }
 
+/**
+ * `Inhibitor`: grants every hold, or refuses the flags in `refuse`. `held` lists what is held
+ * now ({flags, reason}); `answerLater` keeps answers until `answerAll()`.
+ */
+export class FakeInhibitor {
+    held = [];
+    refuse = new Set();
+    answerLater = false;
+    #waiting = [];
+
+    hold(flags, reason) {
+        return new Promise(resolve => {
+            const answer = () => {
+                if (this.refuse.has(flags)) {
+                    resolve(null);
+                    return;
+                }
+                const hold = {flags, reason};
+                this.held.push(hold);
+                resolve({dispose: () => (this.held = this.held.filter(h => h !== hold))});
+            };
+            if (this.answerLater)
+                this.#waiting.push(answer);
+            else
+                answer();
+        });
+    }
+
+    answerAll() {
+        this.#waiting.splice(0).forEach(answer => answer());
+    }
+
+    get live() {
+        return this.held.length;
+    }
+}
+
+/** `Power`; `set(onBattery)` switches the source. */
+export class FakePower {
+    onBattery = false;
+    #watchers = new Watchers();
+
+    watch(fn) {
+        return this.#watchers.add(fn);
+    }
+
+    set(onBattery) {
+        this.onBattery = onBattery;
+        this.#watchers.call();
+    }
+
+    get live() {
+        return this.#watchers.size;
+    }
+}
+
+/** `Idle` on the fake clock: `input()` is the user's input; idle watches fire as time passes. */
+export class FakeIdle {
+    #lastInput;
+    #clock;
+    #idle = new Set();
+    #active = new Set();
+
+    constructor(clock) {
+        this.#clock = clock;
+        this.#lastInput = clock.now().getTime();
+    }
+
+    idleMs() {
+        return this.#clock.now().getTime() - this.#lastInput;
+    }
+
+    onIdle(ms, fn) {
+        const watch = {ms, fn};
+        this.#arm(watch);
+        this.#idle.add(watch);
+        return {dispose: () => {
+            watch.timer.dispose();
+            this.#idle.delete(watch);
+        }};
+    }
+
+    onActive(fn) {
+        const watch = {fn};
+        this.#active.add(watch);
+        return {dispose: () => this.#active.delete(watch)};
+    }
+
+    /** The user moves the mouse: active watches fire once; idle watches count from now. */
+    input() {
+        this.#lastInput = this.#clock.now().getTime();
+        for (const watch of [...this.#active]) {
+            this.#active.delete(watch);
+            watch.fn();
+        }
+        for (const watch of this.#idle) {
+            watch.timer.dispose();
+            this.#arm(watch);
+        }
+    }
+
+    #arm(watch) {
+        watch.timer = this.#clock.at(new Date(this.#lastInput + watch.ms), () => {
+            this.#idle.delete(watch);
+            watch.fn();
+        });
+    }
+
+    get live() {
+        return this.#idle.size + this.#active.size;
+    }
+}
+
 /** `Preferences`: counts the times it was opened. */
 export class FakePreferences {
     opened = 0;
@@ -338,6 +451,9 @@ export function fakePorts({settings, state, keys}) {
         hud: new FakeHud(session, clock),
         notifier: new FakeNotifier(),
         preferences: new FakePreferences(),
+        inhibitor: new FakeInhibitor(),
+        power: new FakePower(),
+        idle: new FakeIdle(clock),
         log: fakeLog(),
     };
 }

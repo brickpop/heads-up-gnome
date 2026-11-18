@@ -1,8 +1,9 @@
 // ADR-002 §5: dispose leaves zero live handles; the locked screen never shows the HUD (G2).
 // Slice 0: the settings, the wake shortcut and the HUD. Slice 1: Focus, its notification, the
-// indicator and the catalogue. Each slice adds its features here.
+// indicator and the catalogue. Slice 2: Caffeine and its inhibitors. Each slice adds its
+// features here.
 
-import {test, assertEqual, testPorts} from '../harness.js';
+import {test, assertEqual, settle, testPorts} from '../harness.js';
 import {createApp} from '../../lib/core/app.js';
 import {liveHandles} from '../fakes.js';
 
@@ -95,5 +96,35 @@ test('locked: a focus or break that ends doesn\'t show the HUD; it opens on Focu
     assertEqual([ports.hud.visible, ports.hud.opened, app.focus.phase.kind], [false, 0, 'prompt']);
     ports.session.unlock();
     assertEqual([ports.hud.visible, ports.hud.focusedSince, app.hud.state.tab], [true, null, 'focus']);
+    app.dispose();
+});
+
+test('dispose with Caffeine on (one answer still pending) leaves zero inhibitor cookies', async () => {
+    const ports = testPorts({state: {'welcome-done': true}, settings: {'only-on-ac': true}});
+    const app = createApp(ports);
+    app.caffeine.selectDuration('1h');
+    await settle();
+    assertEqual(ports.inhibitor.held.length, 2);
+    ports.power.set(true);
+    ports.power.set(false);
+    ports.inhibitor.answerLater = true;
+    app.caffeine.setOption('keepDisplayOn', false);
+    app.caffeine.setOption('keepDisplayOn', true);
+    app.dispose();
+    ports.inhibitor.answerAll();
+    await settle();
+    assertEqual(liveHandles(ports), {});
+});
+
+test('locked: Caffeine keeps the computer awake, and its end still comes', async () => {
+    const ports = testPorts({state: {'welcome-done': true}});
+    const app = createApp(ports);
+    app.caffeine.selectDuration('15m');
+    await settle();
+    ports.session.lock();
+    assertEqual([app.caffeine.isOn, ports.inhibitor.held.length, ports.hud.visible], [true, 2, false]);
+    ports.clock.advance(15 * 60_000);
+    assertEqual([app.caffeine.isOn, ports.inhibitor.held.length], [false, 0]);
+    ports.session.unlock();
     app.dispose();
 });

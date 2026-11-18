@@ -1,6 +1,7 @@
 // What a test file imports: `test()` to register a test, the assertions, and the ports.
 // test/run.js runs what each file registered.
 
+import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 
 import {keyValues} from '../lib/adapters/gsettings.js';
@@ -83,4 +84,12 @@ export function testPorts({settings = {}, state = {}, keys} = {}) {
         state: schemaPort('org.gnome.shell.extensions.headsup.state', state),
         keys,
     });
+}
+
+/** Lets pending promises (an inhibitor's answer) settle: one turn of the main loop. */
+export function settle() {
+    return new Promise(resolve => GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+        resolve();
+        return GLib.SOURCE_REMOVE;
+    }));
 }

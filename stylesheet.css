@@ -50,6 +50,30 @@
 .hu-progress { height: 6px; border-radius: 3px; }
 .hu-progress-fill { height: 6px; border-radius: 3px; background-color: -st-accent-color; }
 
+/* The Caffeine tab (the Mac's CaffeineView). */
+.hu-caffeine-top { spacing: 4px; }
+.hu-caffeine-header { spacing: 14px; }
+.hu-caffeine-chip { width: 56px; height: 56px; border-radius: 14px; }
+.hu-caffeine-chip StIcon { icon-size: 24px; }
+.hu-caffeine-chip .hu-caffeine-badge { icon-size: 16px; border-radius: 10px; padding: 2px; margin: -4px; }
+.hu-caffeine-title { font-size: 18pt; font-weight: 600; }
+/* Lines under the header start under the title: the chip's 56 px and the 14 px gap. */
+.hu-caffeine-indent { padding-left: 70px; }
+.hu-caffeine-note { spacing: 4px; }
+.hu-caffeine-extend { padding: 12px; border-radius: 10px; spacing: 10px; font-size: 9.75pt; }
+.hu-caffeine-durations { spacing: 12px; }
+.hu-caffeine-card-title { font-size: 9.75pt; font-weight: 600; }
+
+/* A list of settings rows, as on the Mac's Settings list. */
+.hu-settings-list { padding: 0; }
+.hu-settings-row { padding: 10px 12px; spacing: 14px; }
+.hu-settings-title { font-size: 9.75pt; }
+.hu-hairline { height: 1px; margin: 0 12px; }
+
+/* The switch: the shell's toggle switch inside a focusable button. */
+.hu-switch { border-radius: 99px; padding: 2px; }
+.hu-switch:focus { box-shadow: inset 0 0 0 2px -st-accent-color; }
+
 /* Segment groups: Snooze and Length (one 28 px container in the secondary button look). */
 .hu-segments { height: 28px; border-radius: 8px; padding: 0 2px; }
 .hu-segments-label { spacing: 5px; padding: 0 10px; font-size: 9.75pt; font-weight: 500; }
@@ -111,6 +135,12 @@
 .hu-dark .hu-danger { color: #ff6961; }
 .hu-dark .hu-button-amber { background-color: #ff9f0a; color: rgba(0,0,0,0.85); }
 .hu-dark .hu-focus-card { border-color: rgba(255,255,255,0.08); }
+.hu-dark .hu-caffeine-chip { background-color: rgba(255,255,255,0.08); color: rgba(235,235,245,0.70); }
+/* The badge is a solid disc in the HUD's background, so it reads on either chip fill. */
+.hu-dark .hu-caffeine-chip .hu-caffeine-badge { background-color: #1e1e21; color: rgba(235,235,245,0.70); }
+.hu-dark .hu-caffeine-extend { background-color: rgba(255,255,255,0.06); }
+.hu-dark .hu-settings-list { border-color: rgba(255,255,255,0.08); background-color: transparent; }
+.hu-dark .hu-hairline { background-color: rgba(255,255,255,0.08); }
 .hu-dark .hu-focus-card:hover, .hu-dark .hu-suggestion:selected { background-color: rgba(255,255,255,0.09); }
 .hu-dark .hu-focus-card:selected { background-color: rgba(255,255,255,0.09); }
 .hu-dark .hu-segments { background-color: rgba(255,255,255,0.12); }
@@ -144,6 +174,11 @@
 .hu-light .hu-danger { color: #c00018; }
 .hu-light .hu-button-amber { background-color: #ff9500; color: rgba(0,0,0,0.85); }
 .hu-light .hu-focus-card { border-color: rgba(0,0,0,0.07); }
+.hu-light .hu-caffeine-chip { background-color: rgba(0,0,0,0.05); color: rgba(60,60,67,0.86); }
+.hu-light .hu-caffeine-chip .hu-caffeine-badge { background-color: #f6f6f8; color: rgba(60,60,67,0.86); }
+.hu-light .hu-caffeine-extend { background-color: rgba(0,0,0,0.04); }
+.hu-light .hu-settings-list { border-color: rgba(0,0,0,0.07); background-color: transparent; }
+.hu-light .hu-hairline { background-color: rgba(0,0,0,0.07); }
 .hu-light .hu-focus-card:hover, .hu-light .hu-suggestion:selected { background-color: rgba(0,0,0,0.06); }
 .hu-light .hu-focus-card:selected { background-color: rgba(0,0,0,0.06); }
 .hu-light .hu-segments { background-color: rgba(0,0,0,0.07); }
@@ -159,6 +194,7 @@
 .hu-dot { background-color: -st-accent-color; }
 .hu-button-primary, .hu-bubble-user { background-color: -st-accent-color; color: -st-accent-fg-color; }
 .hu-card:selected { border-color: -st-accent-color; }
+.hu-caffeine-chip.hu-caffeine-chip-on { background-color: -st-accent-color; color: -st-accent-fg-color; }
 .hu-button-primary .hu-keycap { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.85); }
 
 /* ---- High Contrast ---- */
@@ -173,8 +209,10 @@
 .hu-indicator { spacing: 4px; }
 .hu-indicator-label { font-feature-settings: "tnum"; }
 .hu-indicator-warn { color: #ff9f0a; }
+.hu-indicator-accent { color: -st-accent-color; }
 
 /* ---- Panel menu: the shell's style; only the value and its amber ---- */
 .hu-menu-value { padding-left: 24px; font-feature-settings: "tnum"; }
 .hu-menu-warn-dark { color: #ff9f0a; }
 .hu-menu-warn-light { color: #a84300; }
+.hu-menu-note { padding-left: 32px; font-size: 9pt; }

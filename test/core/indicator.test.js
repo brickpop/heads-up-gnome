@@ -8,7 +8,10 @@ import {menuModel} from '../../lib/core/menuModel.js';
 
 const now = 1_800_000_000_000;
 const idle = {kind: 'timer', text: 'Idle', warning: false};
-const model = (focus, seconds = false) => indicatorModel(focus, now, seconds);
+const OFF = {on: false, endsAt: null, pausedOnBattery: false, serviceHolds: []};
+const on = (endsAt, pausedOnBattery = false) => ({on: true, endsAt, pausedOnBattery, serviceHolds: []});
+const model = (focus, seconds = false, caffeine = OFF) => indicatorModel(focus, caffeine, now, seconds);
+const IDLE_FOCUS = {kind: 'idle', nextLength: 25};
 const running = (run, s) => ({kind: 'running', run, endsAt: now + s * 1000});
 
 test('idle says Idle, and nothing changes by itself', () => {
@@ -88,21 +91,22 @@ test('a paused timer\'s click also leads to Focus', () => {
 
 // The menu.
 
-const focusRow = focus => menuModel({shortcut: 'Super+Space', focus, now}).find(e => e.action === 'focus');
+const focusRow = focus => menuModel({shortcut: 'Super+Space', focus, caffeine: OFF, now}).find(e => e.action === 'focus');
 
 test('the menu\'s rows, in UX §3\'s order', () => {
-    assertEqual(menuModel({shortcut: 'Super+Space', focus: {kind: 'idle', nextLength: 25}, now}), [
+    assertEqual(menuModel({shortcut: 'Super+Space', focus: {kind: 'idle', nextLength: 25}, caffeine: on(null), now}), [
         {kind: 'header', title: 'HeadsUp', shortcut: 'Super+Space'},
         {kind: 'row', action: 'openHud', title: 'Open HeadsUp'},
         {kind: 'separator'},
         {kind: 'row', action: 'focus', title: 'Focus', value: 'Start 25 min', warning: false},
+        {kind: 'row', action: 'toggleCaffeine', title: 'Caffeine', switchOn: true},
         {kind: 'separator'},
         {kind: 'row', action: 'preferences', title: 'Preferences'},
     ]);
 });
 
 test('the header shows no shortcut while it doesn\'t work', () => {
-    assertEqual(menuModel({shortcut: '', focus: {kind: 'idle', nextLength: 25}, now})[0].shortcut, null);
+    assertEqual(menuModel({shortcut: '', focus: {kind: 'idle', nextLength: 25}, caffeine: OFF, now})[0].shortcut, null);
 });
 
 test('the Focus row follows the design', () => {
@@ -124,4 +128,50 @@ test('amber: a HUD shown on Focus without the keyboard is focused, not closed', 
     app.indicator.click();
     assertEqual([app.hud.state.visible, app.hud.state.focused, app.hud.state.tab], [true, true, 'focus']);
     app.dispose();
+});
+
+// Caffeine's cup (the Mac's StatusItemModelTests).
+
+const cup = (text, accent) => ({kind: 'cup', text, accent});
+
+test('caffeine shows the cup next to the timer, and only the cup until off', () => {
+    assertEqual(model(running('focus', 600), false, on(now + 65 * 60_000)).parts, [{kind: 'timer', text: '10m', warning: false}, cup('1h 05m', true)]);
+    assertEqual(model(IDLE_FOCUS, false, on(null)).parts, [idle, cup(null, true)]);
+    assertEqual(model(IDLE_FOCUS, false, on(null)).nextChange, null, 'until off never changes by itself');
+});
+
+test('with seconds on, caffeine uses m:ss only under an hour', () => {
+    assertEqual(model(IDLE_FOCUS, true, on(now + 59 * 60_000)).parts, [idle, cup('59:00', true)]);
+    assertEqual(model(IDLE_FOCUS, true, on(now + 65 * 60_000)).parts, [idle, cup('1h 05m', true)]);
+});
+
+test('paused on battery: the cup without the accent, and says so', () => {
+    const m = model(IDLE_FOCUS, false, on(now + 45 * 60_000, true));
+    assertEqual([m.parts, m.accessibleName], [[idle, cup('45m', false)], 'HeadsUp, idle, caffeine paused on battery, 45 minutes left']);
+});
+
+test('caffeine minutes change just after each half minute; the earliest change wins', () => {
+    assertEqual(model(IDLE_FOCUS, false, on(now + (17 * 60 + 40) * 1000)).nextChange, now + 10_000 + 1);
+    assertEqual(model(IDLE_FOCUS, false, on(now + (17 * 60 + 30) * 1000)).nextChange, now + 1);
+    assertEqual(model(running('focus', 17 * 60 + 20), false, on(now + (17 * 60 + 35) * 1000)).nextChange, now + 5000 + 1);
+});
+
+test('at each redraw the caffeine text is already the new minute', () => {
+    const endsAt = now + 3 * 60_000;
+    let time = now;
+    const texts = [];
+    for (let i = 0; i < 3; i++) {
+        const m = indicatorModel(IDLE_FOCUS, on(endsAt), time, false);
+        texts.push(m.parts.at(-1).text);
+        time = m.nextChange;
+    }
+    assertEqual(texts, ['3m', '2m', '1m']);
+});
+
+test('services that keep the computer awake show the cup while Caffeine is off', () => {
+    const held = {...OFF, serviceHolds: [{name: 'Web dev server', awake: 'holding'}]};
+    const m = model(IDLE_FOCUS, false, held);
+    assertEqual([m.parts, m.accessibleName], [[idle, cup(null, false)], 'HeadsUp, idle, kept awake by Web dev server']);
+    const menu = menuModel({shortcut: '', focus: IDLE_FOCUS, caffeine: held, now});
+    assertEqual(menu.find(e => e.kind === 'note'), {kind: 'note', text: 'Kept awake by Web dev server'});
 });

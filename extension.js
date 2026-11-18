@@ -8,8 +8,10 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {clock as makeClock, Scheduler} from './lib/adapters/clock.js';
 import {gnomeKeys, keyValues} from './lib/adapters/gsettings.js';
+import {inhibitor} from './lib/adapters/inhibitor.js';
 import {log} from './lib/adapters/log.js';
 import {watchResume} from './lib/adapters/login1.js';
+import {power} from './lib/adapters/upower.js';
 import {createApp} from './lib/core/app.js';
 import {Scope} from './lib/core/scope.js';
 import {Hud} from './lib/shell/hud.js';
@@ -51,6 +53,9 @@ export default class HeadsUpExtension extends Extension {
             notifier,
             screenReaderOn,
             preferences: {open: () => this.openPreferences()},
+            // Keep awake (ADR-002 §6.5): GNOME's session manager holds, UPower's power source.
+            inhibitor: inhibitor(),
+            power: own(power(log)),
             log,
             clock,
             scheduler: own(new Scheduler(watchResume)),

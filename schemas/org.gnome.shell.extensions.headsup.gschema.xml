@@ -7,6 +7,12 @@
     <value nick="light" value="1"/>
     <value nick="dark" value="2"/>
   </enum>
+  <enum id="org.gnome.shell.extensions.headsup.CaffeineDuration">
+    <value nick="15m" value="0"/>
+    <value nick="1h" value="1"/>
+    <value nick="2h" value="2"/>
+    <value nick="until-off" value="3"/>
+  </enum>
   <enum id="org.gnome.shell.extensions.headsup.ShortcutStatus">
     <value nick="ok" value="0"/>
     <value nick="layouts" value="1"/>
@@ -42,6 +48,19 @@
     <key name="menu-seconds" type="b">
       <default>false</default>
       <summary>Show seconds in the top bar</summary>
+    </key>
+    <key name="keep-display-on" type="b">
+      <default>true</default>
+      <summary>Caffeine keeps the display on</summary>
+      <description>At least one of keep-display-on and prevent-system-sleep is on; both off read as both on.</description>
+    </key>
+    <key name="prevent-system-sleep" type="b">
+      <default>true</default>
+      <summary>Caffeine prevents system sleep</summary>
+    </key>
+    <key name="only-on-ac" type="b">
+      <default>false</default>
+      <summary>Caffeine and the services' keep-awake pause on battery</summary>
     </key>
     <key name="focus-length" type="u">
       <default>25</default>
@@ -80,6 +99,10 @@
     <key name="focus-today" type="(suu)">
       <default>('', 0, 0)</default>
       <summary>Today's completed focus sessions: the local day, sessions, minutes</summary>
+    </key>
+    <key name="caffeine-duration" enum="org.gnome.shell.extensions.headsup.CaffeineDuration">
+      <default>'1h'</default>
+      <summary>The last Caffeine duration used</summary>
     </key>
     <key name="hud-shortcut-status" enum="org.gnome.shell.extensions.headsup.ShortcutStatus">
       <default>'off'</default>
