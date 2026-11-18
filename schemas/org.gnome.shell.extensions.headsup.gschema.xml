@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- HeadsUp's two schemas (ADR-002 §8.1): the user's settings, and the state the shell writes.
+     Only SettingsStore (lib/core/settings.js) writes them. Keys arrive slice by slice. -->
+<schemalist gettext-domain="headsup">
+  <enum id="org.gnome.shell.extensions.headsup.Appearance">
+    <value nick="system" value="0"/>
+    <value nick="light" value="1"/>
+    <value nick="dark" value="2"/>
+  </enum>
+  <enum id="org.gnome.shell.extensions.headsup.ShortcutStatus">
+    <value nick="ok" value="0"/>
+    <value nick="layouts" value="1"/>
+    <value nick="in-use" value="2"/>
+    <value nick="failed" value="3"/>
+    <value nick="off" value="4"/>
+  </enum>
+  <enum id="org.gnome.shell.extensions.headsup.InputSourceClaim">
+    <value nick="none" value="0"/>
+    <value nick="taken" value="1"/>
+    <value nick="returned" value="2"/>
+  </enum>
+
+  <schema id="org.gnome.shell.extensions.headsup" path="/org/gnome/shell/extensions/headsup/">
+    <key name="hud-shortcut" type="as">
+      <default><![CDATA[['<Super>space']]]></default>
+      <summary>Wake shortcut</summary>
+      <description>Opens the HUD from any app.</description>
+    </key>
+    <key name="take-input-source-key" type="b">
+      <default>false</default>
+      <summary>Use Super+Space even with two or more keyboard layouts</summary>
+      <description>Set only in Preferences. When true, HeadsUp takes Super+Space from GNOME's keyboard layout switch (Shift+Super+Space still switches layouts).</description>
+    </key>
+    <key name="appearance" enum="org.gnome.shell.extensions.headsup.Appearance">
+      <default>'system'</default>
+      <summary>Light or dark look</summary>
+    </key>
+    <key name="close-on-click-outside" type="b">
+      <default>true</default>
+      <summary>Close the HUD on a click elsewhere</summary>
+    </key>
+  </schema>
+
+  <schema id="org.gnome.shell.extensions.headsup.state" path="/org/gnome/shell/extensions/headsup/state/">
+    <key name="welcome-done" type="b">
+      <default>false</default>
+      <summary>The welcome was shown</summary>
+    </key>
+    <key name="hud-shortcut-status" enum="org.gnome.shell.extensions.headsup.ShortcutStatus">
+      <default>'off'</default>
+      <summary>Whether the wake shortcut works, written after each try</summary>
+    </key>
+    <key name="hud-shortcut-active" type="as">
+      <default>[]</default>
+      <summary>The wake shortcut's keys while they are registered; empty otherwise</summary>
+      <description>Written only by the shell, just before it registers the keys the table accepted.</description>
+    </key>
+    <key name="hud-shortcut-holder" type="s">
+      <default>''</default>
+      <summary>The GNOME action that holds the wake shortcut, for the in-use status</summary>
+    </key>
+    <key name="input-source-claim" enum="org.gnome.shell.extensions.headsup.InputSourceClaim">
+      <default>'none'</default>
+      <summary>Whether HeadsUp took the wake shortcut from layout switching</summary>
+    </key>
+    <key name="input-source-binding" type="(asas)">
+      <default>([], [])</default>
+      <summary>Layout switching keys: the value before HeadsUp took the shortcut, and the value it wrote</summary>
+    </key>
+    <key name="layout-notice" type="b">
+      <default>false</default>
+      <summary>Show the one-time notice that a second layout took the shortcut back</summary>
+    </key>
+  </schema>
+</schemalist>

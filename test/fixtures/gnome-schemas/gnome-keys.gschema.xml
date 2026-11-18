@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A small subset of GNOME's own schemas (gsettings-desktop-schemas, gnome-shell,
+     gnome-settings-daemon), with their real ids, keys, types and defaults, for the
+     GnomeKeys adapter tests. -->
+<schemalist>
+  <schema id="org.gnome.desktop.wm.keybindings" path="/org/gnome/desktop/wm/keybindings/">
+    <key name="switch-input-source" type="as">
+      <default><![CDATA[['<Super>space','XF86Keyboard']]]></default>
+      <summary>Switch to next input source</summary>
+    </key>
+    <key name="switch-input-source-backward" type="as">
+      <default><![CDATA[['<Shift><Super>space','<Shift>XF86Keyboard']]]></default>
+      <summary>Switch to previous input source</summary>
+    </key>
+    <key name="close" type="as">
+      <default><![CDATA[['<Alt>F4']]]></default>
+      <summary>Close window</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.shell.keybindings" path="/org/gnome/shell/keybindings/">
+    <key name="toggle-message-tray" type="as">
+      <default><![CDATA[['<Super>v','<Super>m']]]></default>
+      <summary>Show the notification list</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.settings-daemon.plugins.media-keys" path="/org/gnome/settings-daemon/plugins/media-keys/">
+    <key name="custom-keybindings" type="as">
+      <default>[]</default>
+      <summary>Custom keybindings</summary>
+    </key>
+    <key name="calculator" type="as">
+      <default>[]</default>
+      <summary>Launch calculator</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.settings-daemon.plugins.media-keys.custom-keybinding">
+    <key name="name" type="s">
+      <default>''</default>
+      <summary>Name</summary>
+    </key>
+    <key name="binding" type="s">
+      <default>''</default>
+      <summary>Binding</summary>
+    </key>
+    <key name="command" type="s">
+      <default>''</default>
+      <summary>Command</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.desktop.input-sources" path="/org/gnome/desktop/input-sources/">
+    <key name="sources" type="a(ss)">
+      <default>[]</default>
+      <summary>List of input sources</summary>
+    </key>
+  </schema>
+</schemalist>

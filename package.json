@@ -1,0 +1,11 @@
+{
+  "name": "heads-up-gnome",
+  "private": true,
+  "description": "eslint only: the extension itself has no npm dependencies.",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.14.0"
+  }
+}

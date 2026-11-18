@@ -1,0 +1,17 @@
+{
+  "uuid": "headsup@brickpop.app",
+  "name": "HeadsUp",
+  "description": "A keyboard-first heads-up display: focus timer, Caffeine, local services, commands and a chat with your own model, opened with Super+Space.\n\nIt stays active on the lock screen (unlock-dialog) only to keep timers, Caffeine and services running; nothing of it shows there. To use Super+Space it takes that key from GNOME's keyboard layout switch when you have one layout or agree in Preferences (Shift+Super+Space still switches layouts), and gives it back when turned off. Services and commands you add run as your own subprocesses, each service in its own systemd scope.",
+  "shell-version": [
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "session-modes": [
+    "user",
+    "unlock-dialog"
+  ],
+  "settings-schema": "org.gnome.shell.extensions.headsup",
+  "url": "https://github.com/brickpop/heads-up-gnome"
+}
