@@ -30,6 +30,18 @@ export function assertThrows(fn, what = 'it') {
     throw new Error(`${what} should have thrown`);
 }
 
+/** Watches made through schemaPort(), disposed after each test by run.js. */
+const watches = new Set();
+
+/**
+ * Ends what a test left watching the settings: a test that fails half-way never reaches
+ * its own dispose(), and its stores would react to the next tests' writes.
+ */
+export function cleanup() {
+    for (const handle of [...watches])
+        handle.dispose();
+}
+
 /**
  * One of our schemas as a port over the memory backend, every key back at its default,
  * then `values` written. It counts live watches (`live`) and records writes (`writes`).
@@ -49,14 +61,17 @@ export function schemaPort(id, values = {}) {
         const handle = watch(fn);
         counted.live++;
         let live = true;
-        return {
+        const owned = {
             dispose: () => {
                 if (live)
                     counted.live--;
                 live = false;
+                watches.delete(owned);
                 handle.dispose();
             },
         };
+        watches.add(owned);
+        return owned;
     };
     return counted;
 }

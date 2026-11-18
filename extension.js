@@ -14,6 +14,8 @@ import {createApp} from './lib/core/app.js';
 import {Scope} from './lib/core/scope.js';
 import {Hud} from './lib/shell/hud.js';
 import {Indicator} from './lib/shell/indicator.js';
+import {Notifier} from './lib/shell/notifier.js';
+import * as W from './lib/shell/views/widgets.js';
 import {Hotkey} from './lib/shell/keybinding.js';
 import {Session} from './lib/shell/session.js';
 
@@ -35,6 +37,10 @@ export default class HeadsUpExtension extends Extension {
         const clock = makeClock(new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}));
         const session = own(new Session());
         const hud = own(new Hud({session, clock}));
+        const notifier = own(new Notifier({session, icon: W.icon(this.path, 'timer')}));
+        // While Orca runs, a start doesn't hide the HUD (the Mac's VoiceOver rule).
+        const a11y = new Gio.Settings({schema_id: 'org.gnome.desktop.a11y.applications'});
+        const screenReaderOn = () => a11y.get_boolean('screen-reader-enabled');
         const app = own(createApp({
             settings: keyValues(settings),
             state: keyValues(stateSettings),
@@ -42,6 +48,9 @@ export default class HeadsUpExtension extends Extension {
             hotkey: new Hotkey(stateSettings),
             session,
             hud,
+            notifier,
+            screenReaderOn,
+            preferences: {open: () => this.openPreferences()},
             log,
             clock,
             scheduler: own(new Scheduler(watchResume)),

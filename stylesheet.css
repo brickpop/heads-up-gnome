@@ -31,6 +31,53 @@
 .hu-tooltip { /* the hover label, like .dash-label */ border-radius: 99px; padding: 4px 10px; font-size: 9pt; }
 .hu-tab:focus, .hu-button:focus, .hu-card:focus, .hu-row:focus { box-shadow: inset 0 0 0 2px -st-accent-color; }
 
+/* The Focus tab (the Mac's FocusView; sizes are the Mac's × 0.75 in pt). */
+.hu-focus { padding: 22px 24px 24px 24px; spacing: 20px; }
+.hu-focus-head { spacing: 2px; }
+.hu-focus-label { font-size: 8.25pt; font-weight: 600; }
+.hu-focus-title { font-size: 21pt; font-weight: 600; }
+.hu-focus-title-small { font-size: 16.5pt; }
+.hu-focus-stats { font-size: 9.75pt; }
+.hu-focus-hint { font-size: 9pt; }
+.hu-focus-buttons { spacing: 8px; }
+.hu-card-group { spacing: 10px; }
+.hu-focus-card { padding: 14px; }
+.hu-focus-card:selected { border-width: 2px; padding: 13px; }
+.hu-card-number { font-size: 16.5pt; font-weight: 600; }
+.hu-option { spacing: 10px; }
+.hu-option-chip { width: 30px; height: 30px; }
+.hu-option-label { font-size: 9.75pt; font-weight: 500; }
+.hu-progress { height: 6px; border-radius: 3px; }
+.hu-progress-fill { height: 6px; border-radius: 3px; background-color: -st-accent-color; }
+
+/* Segment groups: Snooze and Length (one 28 px container in the secondary button look). */
+.hu-segments { height: 28px; border-radius: 8px; padding: 0 2px; }
+.hu-segments-label { spacing: 5px; padding: 0 10px; font-size: 9.75pt; font-weight: 500; }
+.hu-segments-label StIcon { icon-size: 12px; }
+.hu-segments-line { width: 1px; margin: 6px 0; }
+.hu-segment { height: 24px; margin: 2px 0; padding: 0 10px; border-radius: 6px; font-size: 9.75pt; font-weight: 500; }
+.hu-segment:focus { box-shadow: inset 0 0 0 2px -st-accent-color; }
+
+/* Buttons with an icon and keycaps after the title. */
+.hu-button-content { spacing: 6px; }
+.hu-button-content StIcon { icon-size: 12px; }
+.hu-button .hu-keycap { height: 16px; min-width: 16px; padding: 0 4px; }
+
+/* Suggestions under the prompt (the Mac's SuggestionList). */
+.hu-suggestions { padding: 8px; }
+.hu-suggestion-title { font-size: 10.5pt; font-weight: 600; }
+.hu-suggestion-subtitle { font-size: 9pt; }
+.hu-suggestion-kind { font-size: 9pt; }
+.hu-suggestion-none { padding: 8px 16px; font-size: 9.75pt; }
+
+/* The footer's left side: hints, or a toast in their place. */
+.hu-hints { spacing: 16px; }
+.hu-toast { spacing: 6px; font-weight: 600; }
+.hu-toast StIcon { icon-size: 14px; color: -st-accent-color; }
+.hu-pill { spacing: 4px; }
+.hu-pill StIcon { icon-size: 12px; }
+.hu-tab-dot { margin: 8px; }
+
 /* The notice bar at the top of the body (the Mac's NoticeBar). */
 .hu-notice { min-height: 36px; margin: 8px; padding: 0 12px; spacing: 8px; border-radius: 10px; }
 .hu-notice-text { font-size: 9.75pt; font-weight: 600; }
@@ -63,6 +110,16 @@
 .hu-dark .hu-warn { color: #ff9f0a; }
 .hu-dark .hu-danger { color: #ff6961; }
 .hu-dark .hu-button-amber { background-color: #ff9f0a; color: rgba(0,0,0,0.85); }
+.hu-dark .hu-focus-card { border-color: rgba(255,255,255,0.08); }
+.hu-dark .hu-focus-card:hover, .hu-dark .hu-suggestion:selected { background-color: rgba(255,255,255,0.09); }
+.hu-dark .hu-focus-card:selected { background-color: rgba(255,255,255,0.09); }
+.hu-dark .hu-segments { background-color: rgba(255,255,255,0.12); }
+.hu-dark .hu-segments-line { background-color: rgba(255,255,255,0.14); }
+.hu-dark .hu-segment:selected { background-color: rgba(255,255,255,0.18); }
+.hu-dark .hu-segment:hover { background-color: rgba(255,255,255,0.10); }
+.hu-dark .hu-button-destructive { background-color: rgba(255,255,255,0.12); color: #ff6961; }
+.hu-dark .hu-button-break { background-color: rgba(255,255,255,0.12); color: #ff9f0a; }
+.hu-dark .hu-button-amber .hu-keycap { border-color: rgba(0,0,0,0.35); }
 
 /* ---- Light ---- */
 .hu-light { background-color: #f6f6f8; border-color: rgba(0,0,0,0.12); color: #1d1d1f; box-shadow: 0 12px 40px rgba(0,0,0,0.18); }
@@ -86,12 +143,23 @@
 .hu-light .hu-warn { color: #a84300; }
 .hu-light .hu-danger { color: #c00018; }
 .hu-light .hu-button-amber { background-color: #ff9500; color: rgba(0,0,0,0.85); }
+.hu-light .hu-focus-card { border-color: rgba(0,0,0,0.07); }
+.hu-light .hu-focus-card:hover, .hu-light .hu-suggestion:selected { background-color: rgba(0,0,0,0.06); }
+.hu-light .hu-focus-card:selected { background-color: rgba(0,0,0,0.06); }
+.hu-light .hu-segments { background-color: rgba(0,0,0,0.07); }
+.hu-light .hu-segments-line { background-color: rgba(0,0,0,0.12); }
+.hu-light .hu-segment:selected { background-color: #ffffff; }
+.hu-light .hu-segment:hover { background-color: rgba(0,0,0,0.05); }
+.hu-light .hu-button-destructive { background-color: rgba(0,0,0,0.07); color: #c00018; }
+.hu-light .hu-button-break { background-color: rgba(0,0,0,0.07); color: #a84300; }
+.hu-light .hu-button-amber .hu-keycap { border-color: rgba(0,0,0,0.35); }
 
 /* ---- Both schemes ---- */
 .hu-tab:checked StIcon, .hu-accent { color: -st-accent-color; }
 .hu-dot { background-color: -st-accent-color; }
 .hu-button-primary, .hu-bubble-user { background-color: -st-accent-color; color: -st-accent-fg-color; }
 .hu-card:selected { border-color: -st-accent-color; }
+.hu-button-primary .hu-keycap { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.85); }
 
 /* ---- High Contrast ---- */
 .hu-hc .hu-ink-2, .hu-hc .hu-ink-3, .hu-hc .hu-footer, .hu-hc .hu-section-label, .hu-hc .hu-tab StIcon, .hu-hc .hu-button-ghost, .hu-hc .hu-prompt-dim { color: inherit; }
@@ -105,3 +173,8 @@
 .hu-indicator { spacing: 4px; }
 .hu-indicator-label { font-feature-settings: "tnum"; }
 .hu-indicator-warn { color: #ff9f0a; }
+
+/* ---- Panel menu: the shell's style; only the value and its amber ---- */
+.hu-menu-value { padding-left: 24px; font-feature-settings: "tnum"; }
+.hu-menu-warn-dark { color: #ff9f0a; }
+.hu-menu-warn-light { color: #a84300; }

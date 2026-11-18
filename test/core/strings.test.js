@@ -14,6 +14,11 @@ test('accelLabel writes keys as GNOME Settings does', () => {
         assertEqual(accelLabel(none), '', String(none));
 });
 
+test('Preferences → Focus: the break options group and their remove buttons', async () => {
+    const {FocusPrefs} = await import('../../lib/core/strings.js');
+    assertEqual([FocusPrefs.breakOptions, FocusPrefs.removeOption('Drink water')], ['Break options', 'Remove Drink water']);
+});
+
 test('indicator: the accessible name joins the parts after the app name', () => {
     assertEqual(Indicator.accessibleName([Indicator.idle]), 'HeadsUp, Idle');
 });
@@ -25,6 +30,7 @@ test('tabs: a title and "Title · Ctrl+n" for each of the five', () => {
 test('welcome line by status', () => {
     assertEqual(Welcome.line('ok', 'Super+Space'), 'Press Super+Space in any app to open this.');
     assertEqual(Welcome.line('layouts', 'Super+Space'), 'Super+Space switches your keyboard layout. You can let HeadsUp use it in Preferences.');
+    assertEqual(Welcome.line('layouts', 'Alt+Space'), 'Alt+Space switches your keyboard layout. You can let HeadsUp use it in Preferences.');
     assertEqual(Welcome.line('in-use', 'Super+Space'), "Super+Space isn't working. Choose a shortcut in Preferences.");
     assertEqual(Welcome.line('failed', 'Alt+H'), "Alt+H isn't working. Choose a shortcut in Preferences.");
     assertEqual(Welcome.line('failed', ''), "Your shortcut isn't working. Choose a shortcut in Preferences.");

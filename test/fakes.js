@@ -70,6 +70,11 @@ export class FakeClock {
         return this.#add({due: this.#now + ms, fn, ms});
     }
 
+    /** The clock moves without running the timers, as through a suspend. */
+    jump(ms) {
+        this.#now += ms;
+    }
+
     advance(ms) {
         const end = this.#now + ms;
         for (;;) {
@@ -263,6 +268,50 @@ export class FakeHud {
     }
 }
 
+/** `Notifier`: `shown` maps id to what shows; `answer()` plays a button or a click. */
+export class FakeNotifier {
+    shown = new Map();
+    /** Every post, in order. */
+    posts = [];
+    #watchers = new Watchers();
+
+    post(n) {
+        this.posts.push(n);
+        this.shown.set(n.id, n);
+    }
+
+    withdraw(id) {
+        this.shown.delete(id);
+    }
+
+    onAction(fn) {
+        return this.#watchers.add(fn);
+    }
+
+    /** The user answers the notification `id` with `action` (null: a click on its body). */
+    answer(id, action = null) {
+        const n = this.shown.get(id) ?? this.posts.findLast(p => p.id === id);
+        this.#watchers.call({id, category: n?.category ?? '', action});
+    }
+
+    get live() {
+        return this.#watchers.size;
+    }
+}
+
+/** `Preferences`: counts the times it was opened. */
+export class FakePreferences {
+    opened = 0;
+
+    open() {
+        this.opened++;
+    }
+
+    get live() {
+        return 0;
+    }
+}
+
 /** `Log`, keeping each entry: [code, fields]. */
 export function fakeLog() {
     const log = (code, fields = {}) => log.entries.push([code, fields]);
@@ -287,6 +336,8 @@ export function fakePorts({settings, state, keys}) {
         hotkey: new FakeHotkey(),
         session,
         hud: new FakeHud(session, clock),
+        notifier: new FakeNotifier(),
+        preferences: new FakePreferences(),
         log: fakeLog(),
     };
 }

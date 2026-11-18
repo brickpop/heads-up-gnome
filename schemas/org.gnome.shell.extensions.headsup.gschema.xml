@@ -39,12 +39,47 @@
       <default>true</default>
       <summary>Close the HUD on a click elsewhere</summary>
     </key>
+    <key name="menu-seconds" type="b">
+      <default>false</default>
+      <summary>Show seconds in the top bar</summary>
+    </key>
+    <key name="focus-length" type="u">
+      <default>25</default>
+      <summary>Focus length, in minutes: 25, 40 or 50</summary>
+    </key>
+    <key name="snooze-minutes" type="u">
+      <default>5</default>
+      <summary>Snooze length, in minutes: 2, 5 or 10</summary>
+    </key>
+    <key name="open-hud-on-end" type="b">
+      <default>true</default>
+      <summary>Open the HUD when a session ends; otherwise only a notification</summary>
+    </key>
+    <key name="auto-start-next-focus" type="b">
+      <default>false</default>
+      <summary>Start the next focus after a break</summary>
+    </key>
+    <key name="break-options" type="aa{sv}">
+      <default><![CDATA[[
+        {'id': <'look'>, 'label': <'Look elsewhere'>, 'icon': <'eye'>, 'minutes': <uint32 2>},
+        {'id': <'water'>, 'label': <'Drink water'>, 'icon': <'droplet'>, 'minutes': <uint32 5>},
+        {'id': <'stretch'>, 'label': <'Stretch your arms'>, 'icon': <'activity'>, 'minutes': <uint32 5>},
+        {'id': <'friends'>, 'label': <'Ping a friend'>, 'icon': <'people'>, 'minutes': <uint32 10>},
+        {'id': <'lunch'>, 'label': <'Have lunch'>, 'icon': <'utensils'>, 'minutes': <uint32 50>}
+      ]]]></default>
+      <summary>Break options offered when a focus ends</summary>
+      <description>Each has an id (one of the five defaults, or custom-UUID), a label, an icon and a length in minutes (2, 5, 10, 20 or 50).</description>
+    </key>
   </schema>
 
   <schema id="org.gnome.shell.extensions.headsup.state" path="/org/gnome/shell/extensions/headsup/state/">
     <key name="welcome-done" type="b">
       <default>false</default>
       <summary>The welcome was shown</summary>
+    </key>
+    <key name="focus-today" type="(suu)">
+      <default>('', 0, 0)</default>
+      <summary>Today's completed focus sessions: the local day, sessions, minutes</summary>
     </key>
     <key name="hud-shortcut-status" enum="org.gnome.shell.extensions.headsup.ShortcutStatus">
       <default>'off'</default>

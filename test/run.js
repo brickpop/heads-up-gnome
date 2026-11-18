@@ -7,7 +7,7 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import System from 'system';
 
-import {tests} from './harness.js';
+import {cleanup, tests} from './harness.js';
 
 function findTests(dir, found = []) {
     const children = dir.enumerate_children('standard::name,standard::type', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
@@ -61,6 +61,7 @@ async function main() {
                 failed++;
                 printerr(`FAIL ${root.get_relative_path(file)}: ${name}\n     ${error.message}`);
             }
+            cleanup();
         }
     }
     remove(settingsDir);

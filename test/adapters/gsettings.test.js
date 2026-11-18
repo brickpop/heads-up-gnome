@@ -112,7 +112,8 @@ test('toVariant: the value must already be of the key\'s type', () => {
         ['u', 25, true], ['u', -1, false], ['u', 1.5, false],
         ['as', ['a'], true], ['as', 'a', false], ['as', [1], false],
         ['(asas)', [[], []], true], ['(asas)', [[]], false], ['(suu)', ['d', 1, 2], true],
-        ['aa{sv}', [{id: new GLib.Variant('s', 'x')}], true], ['aa{sv}', [{id: 'x'}], false],
+        ['aa{sv}', [{id: new GLib.Variant('s', 'x')}], true], ['aa{sv}', [{id: 'x', minutes: 5, on: true}], true],
+        ['aa{sv}', [{minutes: 1.5}], false], ['aa{sv}', [{minutes: -1}], false], ['aa{sv}', [{x: null}], false],
         ['a{ss}', {A: 'b'}, true], ['a{ss}', {A: 1}, false],
     ];
     for (const [type, value, fits] of cases)
@@ -130,4 +131,12 @@ test('gnomeKeys: custom shortcut paths that aren\'t dconf folders are skipped (S
     const handle = keys.watch(() => {});
     handle.dispose();
     media.reset('custom-keybindings');
+});
+
+test('keyValues: an aa{sv} list round-trips as plain objects', () => {
+    const settings = keyValues(open('org.gnome.shell.extensions.headsup'));
+    const options = [{id: 'custom-1', label: 'Walk', icon: 'dot', minutes: 20}];
+    settings.set('break-options', options);
+    assertEqual(settings.get('break-options'), options);
+    settings.reset('break-options');
 });
