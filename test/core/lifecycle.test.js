@@ -1,7 +1,7 @@
 // ADR-002 §5: dispose leaves zero live handles; the locked screen never shows the HUD (G2).
 // Slice 0: the settings, the wake shortcut and the HUD. Slice 1: Focus, its notification, the
-// indicator and the catalogue. Slice 2: Caffeine and its inhibitors. Each slice adds its
-// features here.
+// indicator and the catalogue. Slice 2: Caffeine and its inhibitors. Slice 3: Services, their
+// scopes, logs and holds. Each slice adds its features here.
 
 import {test, assertEqual, settle, testPorts} from '../harness.js';
 import {createApp} from '../../lib/core/app.js';
@@ -127,4 +127,48 @@ test('locked: Caffeine keeps the computer awake, and its end still comes', async
     assertEqual([app.caffeine.isOn, ports.inhibitor.held.length], [false, 0]);
     ports.session.unlock();
     app.dispose();
+});
+
+const SERVICE = {'id': '0b6c3a52-6f43-4bb5-9f11-2f0f3d7c9a10', 'name': 'Web', 'command': 'npm run dev', 'cwd': '~', 'env': {},
+    'port': 3000, 'autostart': true, 'keep-awake-for': '30m', 'restart-on-exit': true};
+
+test('dispose with a service running, holding and logging, and another waiting to restart: nothing left', async () => {
+    const ports = testPorts({state: {'welcome-done': true}, settings: {services: [SERVICE, {...SERVICE, id: '1c7d4b63-7054-4cc6-8a22-3a1e4e8dab21', name: 'DB', port: 0}]}});
+    const app = createApp(ports);
+    await settle();
+    ports.clock.advance(3000);
+    ports.processes.last(SERVICE.id).write('ready\n');
+    ports.processes.last('1c7d4b63-7054-4cc6-8a22-3a1e4e8dab21').exit({code: 1});
+    await settle();
+    app.services.toggleLogs(SERVICE.id);
+    assertEqual([app.services.stateOf('1c7d4b63-7054-4cc6-8a22-3a1e4e8dab21').kind, ports.inhibitor.held.length > 0], ['waitingToRestart', true]);
+    const stopsBefore = ports.processes.stoppedAll;
+    app.dispose();
+    await settle();
+    assertEqual([ports.processes.stoppedAll, liveHandles(ports)], [stopsBefore + 1, {}]);
+    ports.clock.advance(60_000);
+    assertEqual(ports.processes.runs.length, 2, 'no restart after disable');
+});
+
+test('locked: services keep running and holding; Show Logs does nothing', async () => {
+    const ports = testPorts({state: {'welcome-done': true}, settings: {services: [{...SERVICE, 'port': 0, 'restart-on-exit': false}]}});
+    const app = createApp(ports);
+    await settle();
+    ports.clock.advance(3000);
+    ports.session.lock();
+    ports.processes.last(SERVICE.id).exit({code: 1});
+    await settle();
+    ports.notifier.answer(`service.failed:${SERVICE.id}`, 'show-logs');
+    assertEqual([app.services.stateOf(SERVICE.id).kind, ports.hud.visible, app.services.openLogs], ['failed', false, null]);
+    ports.session.unlock();
+    app.dispose();
+});
+
+test('dispose leaves no wait for a readable pipe (no pollable source outlives disable, Nick)', async () => {
+    const ports = testPorts({state: {'welcome-done': true}, settings: {services: [{...SERVICE, port: 0}]}});
+    const app = createApp(ports);
+    await settle();
+    assertEqual(ports.processes.waits.size, 1, 'the running service waits for output');
+    app.dispose();
+    assertEqual(ports.processes.waits.size, 0);
 });

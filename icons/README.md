@@ -7,10 +7,10 @@ Symbolic 16 × 16 icons drawn for HeadsUp by Yuki (CC0). Filled paths only, one 
 | chat-symbolic.svg | Chat tab |
 | timer-symbolic.svg | Focus tab, top-bar indicator |
 | cup-symbolic.svg | Caffeine tab, indicator cup |
-| services-symbolic.svg | Services tab |
+| services-symbolic.svg | Services tab, the Services empty state |
 | terminal-symbolic.svg | Commands tab |
 | preferences-symbolic.svg | Open Preferences |
-| close-symbolic.svg | notice bar × |
+| close-symbolic.svg | notice bar ×, a failed service (in `--hu-danger`) |
 | warning-symbolic.svg | notice bar icon (in `--hu-warn`) |
 
 | play-symbolic.svg | Start focus |
@@ -23,5 +23,8 @@ Symbolic 16 × 16 icons drawn for HeadsUp by Yuki (CC0). Filled paths only, one 
 | bell-symbolic.svg | Snooze group |
 | hourglass-symbolic.svg | Length group |
 | sparkle-symbolic.svg | the Ask row in suggestions |
+| check-symbolic.svg | the footer toast (in the accent colour) |
+| list-symbolic.svg | the Logs toggle |
+| restart-symbolic.svg | the restarts flag |
 
 New icons follow the same rules: 16 × 16, filled, 2 px lines, rounded ends, no strokes.

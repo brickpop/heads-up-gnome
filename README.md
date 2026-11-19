@@ -23,7 +23,7 @@ If something goes wrong, the shell's log shows it:
 journalctl -f -o cat /usr/bin/gnome-shell
 ```
 
-To try a change without logging out, `just nested` opens a GNOME Shell in a window, with the installed extension.
+To try a change without logging out, `just nested` opens a GNOME Shell in a window, with the installed extension. It shares your session's systemd: when HeadsUp starts there, it stops every HeadsUp service your real session runs.
 
 **Super+Space** also switches keyboard layouts in GNOME. With one layout, HeadsUp moves layout switching to Shift+Super+Space; with two or more, it asks first, in Preferences → General. Turning HeadsUp off gives Super+Space back.
 
@@ -47,7 +47,7 @@ Three toolchains, and no other:
 | `just lint` | `tools/lint.sh`: eslint with the code rules (no sync I/O, logging only through `log.js`, markup only in `markup.js`, no eval), then the layer, schema and metadata checks |
 | `just build` | test, lint, then `dist/headsup@brickpop.app.shell-extension.zip` with only the files git tracks |
 | `just install` | installs that zip for your user |
-| `just nested` | a GNOME Shell in a window |
+| `just nested` | a GNOME Shell in a window (it stops your real session's HeadsUp services) |
 | `just doctor` | checks this machine: GNOME Shell, toolchains, typelibs, systemd scopes, keyring, terminals |
 
 ### Layout

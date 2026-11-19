@@ -355,6 +355,128 @@ export class FakePower {
     }
 }
 
+/**
+ * `Processes`: each start is a run the test drives: `write(text)` puts output in its pipe,
+ * `exit({code} | {signal})` ends it. `stop()` asks for a SIGTERM: the run exits with signal 15
+ * unless `ignoresStop`. `runs` keeps every run; `stoppedAll` counts the pattern stops.
+ */
+export class FakeProcesses {
+    runs = [];
+    /** Waits for a readable pipe still pending: none may outlive dispose. */
+    waits = new Set();
+    stoppedAll = 0;
+    refuse = false;
+    shell = {shell: '/bin/bash', fallback: null};
+    #nextPid = 1000;
+
+    start(spec) {
+        if (this.refuse)
+            throw new Error('spawn failed');
+        const chunks = [];
+        let ended = false;
+        let wake = null;
+        let resolveExit;
+        const ready = () => {
+            if (wake && (chunks.length || ended)) {
+                const resolve = wake;
+                wake = null;
+                resolve();
+            }
+        };
+        const fake = this;
+        const run = {
+            spec, pid: this.#nextPid, unit: `headsup-${spec.id}-${(this.#nextPid++).toString(16).padStart(8, '0')}.scope`,
+            stops: 0, ignoresStop: false,
+            exited: new Promise(resolve => (resolveExit = resolve)),
+            output: {
+                whenReadable: fn => {
+                    const wait = {fn};
+                    wake = () => {
+                        fake.waits.delete(wait);
+                        fn();
+                    };
+                    fake.waits.add(wait);
+                    ready();
+                    return {dispose: () => {
+                        fake.waits.delete(wait);
+                        if (wake && fake.waits.size === 0)
+                            wake = null;
+                    }};
+                },
+                read: max => {
+                    if (!chunks.length)
+                        return Promise.resolve(null);
+                    const chunk = chunks.shift();
+                    if (chunk.length > max) {
+                        chunks.unshift(chunk.subarray(max));
+                        return Promise.resolve(chunk.subarray(0, max));
+                    }
+                    return Promise.resolve(chunk);
+                },
+            },
+            write(text) {
+                chunks.push(new TextEncoder().encode(text));
+                ready();
+            },
+            /** The process ends; `endOutput: false` keeps its pipe open (a child still writes). */
+            exit(how, {endOutput = true} = {}) {
+                if (endOutput)
+                    run.endOutput();
+                resolveExit(how);
+            },
+            endOutput() {
+                ended = true;
+                ready();
+            },
+            stop() {
+                run.stops++;
+                if (!run.ignoresStop)
+                    run.exit({signal: 15});
+            },
+        };
+        this.runs.push(run);
+        return run;
+    }
+
+    /** The last run of service `id`. */
+    last(id) {
+        return this.runs.filter(r => r.spec.id === id).at(-1);
+    }
+
+    stopAll() {
+        this.stoppedAll++;
+        for (const run of this.runs)
+            run.exit({signal: 15});
+        return Promise.resolve(this.runs.length);
+    }
+
+    loginShell() {
+        return this.shell;
+    }
+
+    get live() {
+        return this.waits.size;
+    }
+}
+
+/** `PortProbe`: `listeningPort` and `answering` are what the probe finds. */
+export class FakePortProbe {
+    listeningPort = null;
+    answering = new Set();
+
+    listening() {
+        return Promise.resolve(this.listeningPort);
+    }
+
+    answers(port) {
+        return Promise.resolve(this.answering.has(port));
+    }
+
+    get live() {
+        return 0;
+    }
+}
+
 /** `Idle` on the fake clock: `input()` is the user's input; idle watches fire as time passes. */
 export class FakeIdle {
     #lastInput;
@@ -412,6 +534,32 @@ export class FakeIdle {
     }
 }
 
+/** `Files`: the folders in `folders` exist ('~' among them). */
+export class FakeFiles {
+    folders = new Set(['~', '/tmp']);
+
+    isFolder(path) {
+        return Promise.resolve(this.folders.has(path));
+    }
+
+    get live() {
+        return 0;
+    }
+}
+
+/** `Links`: keeps what was opened. */
+export class FakeLinks {
+    opened = [];
+
+    open(uri) {
+        this.opened.push(uri);
+    }
+
+    get live() {
+        return 0;
+    }
+}
+
 /** `Preferences`: counts the times it was opened. */
 export class FakePreferences {
     opened = 0;
@@ -453,7 +601,11 @@ export function fakePorts({settings, state, keys}) {
         preferences: new FakePreferences(),
         inhibitor: new FakeInhibitor(),
         power: new FakePower(),
+        processes: new FakeProcesses(),
+        portProbe: new FakePortProbe(),
         idle: new FakeIdle(clock),
+        files: new FakeFiles(),
+        links: new FakeLinks(),
         log: fakeLog(),
     };
 }

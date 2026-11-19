@@ -34,6 +34,11 @@ for (const [tool, args] of [['node', ['--version']], ['python3', ['--version']],
     const [ok, text] = run([tool, ...args]);
     report(ok, tool, text, tool !== 'glib-compile-schemas' || ok);
 }
+// Services run through systemd-run (each in its own scope); ss finds the port they listen on.
+for (const [tool, args, needed] of [['systemd-run', ['--version'], true], ['ss', ['--version'], false]]) {
+    const [ok, text] = run([tool, ...args]);
+    report(ok, tool, ok ? text.split('\n')[0] : 'not found', needed);
+}
 
 // Typelibs: Secret, ECal and the others turn their feature off when missing.
 for (const [name, version, pkg] of [

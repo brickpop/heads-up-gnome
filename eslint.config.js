@@ -11,6 +11,8 @@ const LOGGING = 'logging only through lib/adapters/log.js (G3)';
 const EVAL = 'no eval, new Function, ByteArray or legacy imports';
 const MARKUP = 'markup only in lib/shell/markup.js';
 const SYNC = 'no sync I/O or spawn: use the _async variant, with argv, never a command line';
+const FDS = 'no fd may stay open into a child (N1)';
+const SPIN = 'never await Promise.resolve(): it lets no GLib event in, and a loop on it hangs the shell (Scan S3-5)';
 
 const restrictedGlobals = [
     ...['console', 'log', 'logError', 'print', 'printerr'].map(name => ({name, message: LOGGING})),
@@ -25,6 +27,12 @@ const restrictedProperties = [
 const syncSyntax = [{
     selector: 'CallExpression[callee.property.name=/^(load_contents|replace_contents|query_info|query_exists|query_file_type|make_directory(_with_parents)?|make_symbolic_link|trash|enumerate_children|file_get_contents|file_set_contents|mkdir_with_parents|spawn_command_line_(a)?sync|spawn_sync|.*_sync)$/]',
     message: SYNC,
+}, {
+    selector: 'Identifier[name=/^(take_fd|take_stdin_fd|take_stdout_fd|take_stderr_fd|LEAVE_DESCRIPTORS_OPEN|G_SPAWN_LEAVE_DESCRIPTORS_OPEN|INHERIT_FDS)$/]',
+    message: FDS,
+}, {
+    selector: "AwaitExpression > CallExpression[callee.object.name='Promise'][callee.property.name='resolve']",
+    message: SPIN,
 }];
 
 // `use_markup: false` stays allowed: it is the safe setting, needed where GTK parses markup

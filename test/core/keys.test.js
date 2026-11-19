@@ -131,3 +131,14 @@ test('the footer: a toast, else the hints for what shows', () => {
     assertEqual(app.footer(), {toast: {text: 'Saved', seq: 2}});
     app.dispose();
 });
+
+test('Preferences open on a named page (prefs-page), or the last one; unknown pages are ignored', () => {
+    const {ports, app} = start();
+    app.openPreferences('services');
+    assertEqual([ports.state.get('prefs-page'), ports.preferences.opened, app.hud.state.visible], ['services', 1, false]);
+    ports.state.set('prefs-page', '');
+    app.openPreferences('nowhere');
+    app.handleKey({key: 'comma', ctrl: true}, true);
+    assertEqual([ports.state.get('prefs-page'), ports.preferences.opened], ['', 3]);
+    app.dispose();
+});

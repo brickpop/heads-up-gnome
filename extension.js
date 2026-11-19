@@ -8,13 +8,18 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {clock as makeClock, Scheduler} from './lib/adapters/clock.js';
 import {gnomeKeys, keyValues} from './lib/adapters/gsettings.js';
+import {files} from './lib/adapters/files.js';
 import {inhibitor} from './lib/adapters/inhibitor.js';
+import {links} from './lib/adapters/links.js';
 import {log} from './lib/adapters/log.js';
 import {watchResume} from './lib/adapters/login1.js';
+import {portProbe} from './lib/adapters/portProbe.js';
+import {processes} from './lib/adapters/processes.js';
 import {power} from './lib/adapters/upower.js';
 import {createApp} from './lib/core/app.js';
 import {Scope} from './lib/core/scope.js';
 import {Hud} from './lib/shell/hud.js';
+import {Idle} from './lib/shell/idle.js';
 import {Indicator} from './lib/shell/indicator.js';
 import {Notifier} from './lib/shell/notifier.js';
 import * as W from './lib/shell/views/widgets.js';
@@ -56,17 +61,23 @@ export default class HeadsUpExtension extends Extension {
             // Keep awake (ADR-002 §6.5): GNOME's session manager holds, UPower's power source.
             inhibitor: inhibitor(),
             power: own(power(log)),
+            // Services (ADR-002 §6.4): each run in its own systemd scope; the last activity for
+            // their keep-awake limit.
+            processes: processes({log}),
+            portProbe: portProbe(),
+            files: files(),
+            links: links(log),
+            idle: own(new Idle()),
             log,
             clock,
             scheduler: own(new Scheduler(watchResume)),
         }));
 
-        const openPreferences = () => this.openPreferences();
-        const indicator = new Indicator({stores: app, dir: this.path, openPreferences, scope: scope.child()});
+        const indicator = new Indicator({stores: app, dir: this.path, scope: scope.child()});
         indicator.setVisible(!session.locked);
         own(session.watch(locked => indicator.setVisible(!locked)));
         // Last: an auto-open that createApp() asked for (the welcome) shows now.
-        hud.attach(app, {dir: this.path, openPreferences});
+        hud.attach(app, {dir: this.path});
     }
 
     disable() {

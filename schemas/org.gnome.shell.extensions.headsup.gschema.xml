@@ -62,6 +62,11 @@
       <default>false</default>
       <summary>Caffeine and the services' keep-awake pause on battery</summary>
     </key>
+    <key name="services" type="aa{sv}">
+      <default>[]</default>
+      <summary>Services: long-running commands HeadsUp starts and stops</summary>
+      <description>Each has id (a UUID), name, command, cwd, env (a{ss}), port (0 = none), autostart, keep-awake-for (off, 30m, 2h, 5h, unlimited) and restart-on-exit. Env values sit here in plain text.</description>
+    </key>
     <key name="focus-length" type="u">
       <default>25</default>
       <summary>Focus length, in minutes: 25, 40 or 50</summary>
@@ -103,6 +108,16 @@
     <key name="caffeine-duration" enum="org.gnome.shell.extensions.headsup.CaffeineDuration">
       <default>'1h'</default>
       <summary>The last Caffeine duration used</summary>
+    </key>
+    <key name="prefs-page" type="s">
+      <default>''</default>
+      <summary>The Preferences page to open on: general, focus or services; '' keeps the last one</summary>
+      <description>Written by the shell just before it opens Preferences; prefs read it, show that page, and clear it.</description>
+    </key>
+    <key name="running-services" type="as">
+      <default>[]</default>
+      <summary>The ids of the live services (starting, running or waiting to restart)</summary>
+      <description>Written only by the shell's ServiceStore. Prefs read it for copy only (the editor's note and the remove question).</description>
     </key>
     <key name="hud-shortcut-status" enum="org.gnome.shell.extensions.headsup.ShortcutStatus">
       <default>'off'</default>

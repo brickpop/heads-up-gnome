@@ -1,7 +1,7 @@
 // The indicator and the menu: the Mac's StatusItemModelTests and MenuModelTests (Focus parts),
 // and the click rules of MenuBarTests.
 
-import {test, assertEqual, testPorts} from '../harness.js';
+import {test, assertEqual, settle, testPorts} from '../harness.js';
 import {createApp} from '../../lib/core/app.js';
 import {indicatorModel} from '../../lib/core/indicatorModel.js';
 import {menuModel} from '../../lib/core/menuModel.js';
@@ -12,6 +12,7 @@ const OFF = {on: false, endsAt: null, pausedOnBattery: false, serviceHolds: []};
 const on = (endsAt, pausedOnBattery = false) => ({on: true, endsAt, pausedOnBattery, serviceHolds: []});
 const model = (focus, seconds = false, caffeine = OFF) => indicatorModel(focus, caffeine, now, seconds);
 const IDLE_FOCUS = {kind: 'idle', nextLength: 25};
+const NONE = {running: 0, starting: 0, failed: 0};
 const running = (run, s) => ({kind: 'running', run, endsAt: now + s * 1000});
 
 test('idle says Idle, and nothing changes by itself', () => {
@@ -91,22 +92,25 @@ test('a paused timer\'s click also leads to Focus', () => {
 
 // The menu.
 
-const focusRow = focus => menuModel({shortcut: 'Super+Space', focus, caffeine: OFF, now}).find(e => e.action === 'focus');
+const focusRow = focus => menuModel({shortcut: 'Super+Space', focus, caffeine: OFF, services: NONE, now}).find(e => e.action === 'focus');
 
 test('the menu\'s rows, in UX §3\'s order', () => {
-    assertEqual(menuModel({shortcut: 'Super+Space', focus: {kind: 'idle', nextLength: 25}, caffeine: on(null), now}), [
+    assertEqual(menuModel({shortcut: 'Super+Space', focus: {kind: 'idle', nextLength: 25}, caffeine: on(null), services: {running: 2, starting: 0, failed: 0}, now}), [
         {kind: 'header', title: 'HeadsUp', shortcut: 'Super+Space'},
         {kind: 'row', action: 'openHud', title: 'Open HeadsUp'},
         {kind: 'separator'},
         {kind: 'row', action: 'focus', title: 'Focus', value: 'Start 25 min', warning: false},
         {kind: 'row', action: 'toggleCaffeine', title: 'Caffeine', switchOn: true},
+        {kind: 'row', action: 'services', title: 'Services', value: '2 running'},
         {kind: 'separator'},
         {kind: 'row', action: 'preferences', title: 'Preferences'},
+        {kind: 'separator'},
+        {kind: 'row', action: 'stopAllServices', title: 'Stop All Services'},
     ]);
 });
 
 test('the header shows no shortcut while it doesn\'t work', () => {
-    assertEqual(menuModel({shortcut: '', focus: {kind: 'idle', nextLength: 25}, caffeine: OFF, now})[0].shortcut, null);
+    assertEqual(menuModel({shortcut: '', focus: {kind: 'idle', nextLength: 25}, caffeine: OFF, services: NONE, now})[0].shortcut, null);
 });
 
 test('the Focus row follows the design', () => {
@@ -172,6 +176,32 @@ test('services that keep the computer awake show the cup while Caffeine is off',
     const held = {...OFF, serviceHolds: [{name: 'Web dev server', awake: 'holding'}]};
     const m = model(IDLE_FOCUS, false, held);
     assertEqual([m.parts, m.accessibleName], [[idle, cup(null, false)], 'HeadsUp, idle, kept awake by Web dev server']);
-    const menu = menuModel({shortcut: '', focus: IDLE_FOCUS, caffeine: held, now});
+    const menu = menuModel({shortcut: '', focus: IDLE_FOCUS, caffeine: held, services: NONE, now});
     assertEqual(menu.find(e => e.kind === 'note'), {kind: 'note', text: 'Kept awake by Web dev server'});
+});
+
+test('the Services row says what runs; Stop All Services shows only while one runs', () => {
+    const value = services => menuModel({shortcut: '', focus: IDLE_FOCUS, caffeine: OFF, services, now}).find(e => e.action === 'services').value;
+    assertEqual([value(NONE), value({running: 2, starting: 1, failed: 1})], ['None', '2 running · 1 starting · 1 failed']);
+    assertEqual(menuModel({shortcut: '', focus: IDLE_FOCUS, caffeine: OFF, services: {running: 0, starting: 0, failed: 2}, now}).some(e => e.action === 'stopAllServices'), false);
+});
+
+test('app.menu(now) is assembled from every store: shortcut, focus, caffeine, services', async () => {
+    const SERVICE = {'id': '0b6c3a52-6f43-4bb5-9f11-2f0f3d7c9a10', 'name': 'Web', 'command': 'npm run dev', 'cwd': '~', 'env': {},
+        'port': 0, 'autostart': true, 'keep-awake-for': 'unlimited', 'restart-on-exit': false};
+    const ports = testPorts({state: {'welcome-done': true}, settings: {services: [SERVICE]}});
+    const app = createApp(ports);
+    await settle();
+    app.focus.start();
+    app.caffeine.toggle();
+    await settle();
+    const entries = app.menu(app.now());
+    const row = action => entries.find(e => e.action === action);
+    assertEqual(entries[0], {kind: 'header', title: 'HeadsUp', shortcut: 'Super+Space'});
+    assertEqual([row('focus').value, row('toggleCaffeine').switchOn, row('services').value, Boolean(row('stopAllServices'))],
+        ['Focus · 25:00', true, '1 starting', true]);
+    ports.hotkey.refuse = true;
+    app.settings.set('hud-shortcut', ['<Super>h']);
+    assertEqual(app.menu(app.now())[0].shortcut, null, 'no shortcut named while it doesn\'t work');
+    app.dispose();
 });
